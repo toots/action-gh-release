@@ -155,15 +155,31 @@ export const upload = async (
   console.log(`⬆️ Uploading ${name}...`);
   const endpoint = new URL(url);
   endpoint.searchParams.append("name", name);
-  const resp = await fetch(endpoint, {
-    headers: {
-      "content-length": `${size}`,
-      "content-type": mime,
-      authorization: `token ${config.github_token}`
-    },
-    method: "POST",
-    body
-  });
+  let tries = 0;
+  const doFetch = async () => {
+    let resp;
+    try {
+      resp = await fetch(endpoint, {
+        headers: {
+          "content-length": `${size}`,
+          "content-type": mime,
+          authorization: `token ${config.github_token}`
+        },
+        method: "POST",
+        body
+      });
+      return resp;
+    } catch (err) {
+      if (tries < 3) {
+        tries += 1;
+        resp = await doFetch();
+        return resp;
+      } else {
+        throw err;
+      }
+    }
+  };
+  const resp = await doFetch();
   const json = await resp.json();
   if (resp.status !== 201) {
     throw new Error(

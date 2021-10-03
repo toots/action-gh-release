@@ -9,6 +9,7 @@ import { release, upload, GitHubReleaser } from "./github";
 import { getOctokit } from "@actions/github";
 import { setFailed, setOutput } from "@actions/core";
 import { GitHub, getOctokitOptions } from "@actions/github/lib/utils";
+import * as Bluebird from "bluebird";
 
 import { env } from "process";
 
@@ -66,16 +67,8 @@ async function run() {
         console.warn(`🤔 ${config.input_files} not include valid file.`);
       }
       const currentAsserts = rel.assets;
-      await Promise.all(
-        files.map(async path => {
-          await upload(
-            config,
-            gh,
-            uploadUrl(rel.upload_url),
-            path,
-            currentAsserts
-          );
-        })
+      await Bluebird.each(files, path =>
+        upload(config, gh, uploadUrl(rel.upload_url), path, currentAsserts)
       ).catch(error => {
         throw error;
       });
