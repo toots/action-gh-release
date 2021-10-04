@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import axios from "axios";
 import { GitHub } from "@actions/github/lib/utils";
 import { Config, isTag, releaseBody } from "./util";
 import { lstatSync, readFileSync } from "fs";
@@ -158,14 +158,12 @@ export const upload = async (
   const doFetch = async () => {
     let resp;
     try {
-      resp = await fetch(endpoint, {
+      resp = await axios.post(endpoint.toString(), body, {
         headers: {
           "content-length": `${size}`,
           "content-type": mime,
           authorization: `token ${config.github_token}`
-        },
-        method: "POST",
-        body
+        }
       });
       return resp;
     } catch (err) {
@@ -174,15 +172,14 @@ export const upload = async (
     }
   };
   const resp = await doFetch();
-  const json = await resp.json();
   if (resp.status !== 201) {
     throw new Error(
       `Failed to upload release asset ${name}. recieved status code ${
         resp.status
-      }\n${json.message}\n${JSON.stringify(json.errors)}`
+      }\n${resp.data.message}\n${JSON.stringify(resp.data.errors)}`
     );
   }
-  return json;
+  return resp.data;
 };
 
 export const release = async (
