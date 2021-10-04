@@ -67,11 +67,14 @@ async function run() {
         console.warn(`🤔 ${config.input_files} not include valid file.`);
       }
       const currentAsserts = rel.assets;
-      await Bluebird.each(files, path =>
-        upload(config, gh, uploadUrl(rel.upload_url), path, currentAsserts)
-      ).catch(error => {
+      try {
+        await Bluebird.each(files, path =>
+          upload(config, gh, uploadUrl(rel.upload_url), path, currentAsserts)
+        );
+      } catch (error) {
+        console.log(error, error.stack);
         throw error;
-      });
+      }
     }
     console.log(`🎉 Release ready at ${rel.html_url}`);
     setOutput("url", rel.html_url);

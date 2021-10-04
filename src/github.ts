@@ -155,7 +155,6 @@ export const upload = async (
   console.log(`⬆️ Uploading ${name}...`);
   const endpoint = new URL(url);
   endpoint.searchParams.append("name", name);
-  let tries = 0;
   const doFetch = async () => {
     let resp;
     try {
@@ -170,13 +169,8 @@ export const upload = async (
       });
       return resp;
     } catch (err) {
-      if (tries < 3) {
-        tries += 1;
-        resp = await doFetch();
-        return resp;
-      } else {
-        throw err;
-      }
+      resp = await doFetch();
+      return resp;
     }
   };
   const resp = await doFetch();
